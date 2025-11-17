@@ -24,47 +24,94 @@
       background: #2563eb;
       color: white;
     }
+    .examples {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .example-section {
+      padding: 15px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .example-section h3 {
+      margin-top: 0;
+      color: #1f2937;
+    }
     #copilot-container {
       height: 600px;
       width: 100%;
+    }
+    #copilot-container-floating {
+      /* Floating widget doesn't need a container */
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>Copilot Embed Example</h1>
+      <h1>Copilot Embed Examples</h1>
       <p>This demonstrates how to embed the Copilot UI in any website</p>
     </div>
-    <div id="copilot-container"></div>
+    
+    <div class="examples">
+      <div class="example-section">
+        <h3>Example 1: Inline Embedding</h3>
+        <p>Widget embedded inline in the page</p>
+        <div id="copilot-container" style="height: 600px; width: 100%; margin-top: 10px;"></div>
+      </div>
+      
+      <div class="example-section">
+        <h3>Example 2: Floating Widget</h3>
+        <p>Floating bubble widget (bottom-right)</p>
+        <div id="copilot-container-floating"></div>
+        <p style="margin-top: 20px; color: #6b7280;">
+          The floating widget will appear in the bottom-right corner of the page.
+        </p>
+      </div>
+    </div>
   </div>
 
+  <!-- Load the widget script -->
+  <script src="/copilot-widget.js"></script>
+  
   <script>
-    // Configuration
-    window.CopilotConfig = {
+    // Example 1: Inline embedding
+    window.CopilotWidget.init({
       containerId: 'copilot-container',
       iframeSrc: '/embed',
       height: '600px',
       width: '100%',
       theme: 'auto',
+      position: 'inline',
       apiEndpoint: '', // Set your API endpoint here
-      onMessage: function(data) {
-        console.log('Message from copilot:', data);
-      }
-    };
-  </script>
-  <script>
-    // Simplified loader for development
-    (function() {
-      var container = document.getElementById('copilot-container');
-      var iframe = document.createElement('iframe');
-      iframe.src = window.CopilotConfig.iframeSrc;
-      iframe.style.border = 'none';
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.display = 'block';
-      container.appendChild(iframe);
-    })();
+    });
+
+    // Example 2: Floating widget
+    window.CopilotWidget.init({
+      containerId: 'copilot-container-floating',
+      iframeSrc: '/embed',
+      height: '600px',
+      width: '400px',
+      theme: 'auto',
+      position: 'bottom-right',
+      apiEndpoint: '', // Set your API endpoint here
+    });
+
+    // Listen to widget events
+    document.addEventListener('copilot:ready', function(event) {
+      console.log('Copilot widget ready:', event.detail);
+    });
+
+    document.addEventListener('copilot:message', function(event) {
+      console.log('Message from copilot:', event.detail);
+    });
+
+    document.addEventListener('copilot:loaded', function(event) {
+      console.log('Iframe loaded:', event.detail);
+    });
   </script>
 </body>
 </html>

@@ -79,3 +79,19 @@ body {
          disabled:opacity-50 disabled:cursor-not-allowed 
          transition-colors duration-200;
 }
+
+/* Bubble window animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.copilot-bubble-window {
+  animation: slideUp 0.3s ease-out;
+}
