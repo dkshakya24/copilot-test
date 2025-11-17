@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SharePoint Integration Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      padding: 20px;
+      background: #0078d4;
+      color: white;
+    }
+    .content {
+      padding: 20px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border-left: 4px solid #0078d4;
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #1f2937;
+    }
+    .code-block {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+    #copilot-container {
+      height: 600px;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .note {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>SharePoint Integration Example</h1>
+      <p>Copy and paste this code into your SharePoint Script Editor Web Part</p>
+    </div>
+    
+    <div class="content">
+      <div class="section">
+        <h2>Method 1: Using Widget Script (Recommended)</h2>
+        <p>This is the easiest method. Simply copy the code below into a SharePoint Script Editor Web Part:</p>
+        
+        <div class="code-block">
+&lt;!-- Replace 'your-domain.com' with your actual domain --&gt;
+&lt;div id="copilot-container"&gt;&lt;/div&gt;
+
+&lt;script src="https://your-domain.com/copilot-widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.CopilotConfig = {
+    containerId: 'copilot-container',
+    iframeSrc: 'https://your-domain.com/embed',
+    position: 'bottom-right',
+    theme: 'auto',
+    apiEndpoint: 'https://your-api.com',
+    height: '600px',
+    width: '400px',
+    autoLoad: true
+  };
+&lt;/script&gt;
+        </div>
+
+        <div class="note">
+          <strong>Note:</strong> Replace <code>your-domain.com</code> with your actual production domain. 
+          Make sure your Next.js app is deployed and accessible via HTTPS.
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Method 2: Direct Iframe Embedding</h2>
+        <p>For simple embedding without the widget script:</p>
+        
+        <div class="code-block">
+&lt;div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 400px; height: 600px;"&gt;
+  &lt;iframe 
+    src="https://your-domain.com/embed?theme=auto&amp;position=bubble"
+    style="width: 100%; height: 100%; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);"
+    title="AI Copilot Chat"
+    allow="microphone; camera"&gt;
+  &lt;/iframe&gt;
+&lt;/div&gt;
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Live Demo</h2>
+        <p>Here's a live example of the inline embedding:</p>
+        <div id="copilot-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live demo script -->
+  <script src="/copilot-widget.js"></script>
+  <script>
+    // Live demo configuration
+    window.CopilotWidget.init({
+      containerId: 'copilot-container',
+      iframeSrc: '/embed',
+      height: '600px',
+      width: '100%',
+      theme: 'auto',
+      position: 'inline',
+      apiEndpoint: ''
+    });
+
+    // Event listeners for demo
+    document.addEventListener('copilot:ready', function(event) {
+      console.log('Copilot widget ready:', event.detail);
+    });
+  </script>
+</body>
+</html>
+
