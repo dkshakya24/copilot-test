@@ -6,15 +6,18 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/embed')) {
     const response = NextResponse.next();
     
-    // Override any existing CSP with our permissive frame-ancestors
-    // This ensures iframe embedding works from any origin
+    // Set CSP with explicit scheme matching as the error message suggests
+    // This format explicitly allows https: and http: schemes
     response.headers.set(
       'Content-Security-Policy',
-      'frame-ancestors *'
+      "frame-ancestors https: http:"
     );
     
     // Explicitly remove X-Frame-Options to avoid conflicts
     response.headers.delete('X-Frame-Options');
+    
+    // Debug header to verify middleware is running
+    response.headers.set('X-Copilot-Embed', 'enabled');
     
     return response;
   }
