@@ -75,13 +75,13 @@
   </div>
 
   <!-- Load the widget script -->
-  <script src="/copilot-widget.js"></script>
+  <script src="https://copilot-test-theta.vercel.app/copilot-widget.js"></script>
   
   <script>
     // Example 1: Inline embedding
     window.CopilotWidget.init({
       containerId: 'copilot-container',
-      iframeSrc: '/embed',
+      iframeSrc: 'https://copilot-test-theta.vercel.app/embed',
       height: '600px',
       width: '100%',
       theme: 'auto',
@@ -92,7 +92,7 @@
     // Example 2: Floating widget
     window.CopilotWidget.init({
       containerId: 'copilot-container-floating',
-      iframeSrc: '/embed',
+      iframeSrc: 'https://copilot-test-theta.vercel.app/embed',
       height: '600px',
       width: '400px',
       theme: 'auto',
@@ -113,6 +113,23 @@
       console.log('Iframe loaded:', event.detail);
     });
   </script>
+
+<!-- 
+<script src="https://copilot-test-theta.vercel.app/copilot-widget.js"></script>
+<script>
+  // Configure the widget
+  window.CopilotConfig = {
+    containerId: "copilot-container",
+    iframeSrc: "https://copilot-test-theta.vercel.app/embed",
+    height: "600px",
+    width: "100%",
+    theme: "auto", // 'light', 'dark', or 'auto'
+    position: "bottom-right", // 'bottom-right', 'bottom-left', 'top-right', 'top-left', or 'inline'
+    apiEndpoint: "https://copilot-test-theta.vercel.app",
+    zIndex: 9999,
+    autoLoad: true,
+  };
+</script> -->
 </body>
 </html>
 
