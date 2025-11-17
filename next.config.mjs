@@ -20,7 +20,19 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors *;", // Allows embedding from any origin
+            // Explicitly allow all network schemes for frame-ancestors
+            // This format works better with Vercel and modern browsers
+            value: "frame-ancestors 'self' https: http: data: blob:;",
+          },
+        ],
+      },
+      {
+        // Also apply to embed page with any path
+        source: '/embed/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https: http: data: blob:;",
           },
         ],
       },
