@@ -33,7 +33,13 @@
       theme: window.CopilotBubbleConfig?.theme || 'light',
       userId: window.CopilotBubbleConfig?.userId || 'guest@example.com',
       role: window.CopilotBubbleConfig?.role || 'user',
-      botIconUrl: window.CopilotBubbleConfig?.botIconUrl || '' // Bot avatar icon URL
+      botIconUrl: window.CopilotBubbleConfig?.botIconUrl || '', // Bot avatar icon URL
+      suggestedQuestions: window.CopilotBubbleConfig?.suggestedQuestions || [
+        'What equity-related policies and plans are available for employees?',
+        'What are all the travel policies, including domestic and international travel guidelines?',
+        'Show me all HR policies related to employee benefits and compensation.',
+        'What finance policies cover expense reimbursement and budget approval processes?'
+      ]
     },
     window.CopilotBubbleConfig || {}
   )
@@ -527,6 +533,61 @@
         color: ${colors.foreground};
         margin: 0;
       }
+      .copilot-suggested-questions {
+        padding: 12px 16px;
+        background: ${colors.background};
+        border-top: 1px solid ${colors.border};
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: ${colors.border} transparent;
+      }
+      .copilot-suggested-questions::-webkit-scrollbar {
+        width: 4px;
+      }
+      .copilot-suggested-questions::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .copilot-suggested-questions::-webkit-scrollbar-thumb {
+        background: ${colors.border};
+        border-radius: 2px;
+      }
+      .copilot-suggested-questions.hidden {
+        display: none;
+      }
+      .copilot-suggested-questions-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: ${colors.mutedForeground};
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+      }
+      .copilot-suggested-question {
+        padding: 10px 12px;
+        background: ${colors.card};
+        border: 1px solid ${colors.border};
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        color: ${colors.foreground};
+        text-align: left;
+        line-height: 1.4;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .copilot-suggested-question:hover {
+        background: ${colors.muted};
+        border-color: ${config.primaryColor};
+        transform: translateX(2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .copilot-suggested-question:active {
+        transform: scale(0.98);
+      }
       .copilot-chat-input-container {
         padding: 12px 16px;
         background: ${colors.card};
@@ -896,6 +957,9 @@
 
       // Auto-scroll to bottom
       messagesContainer.scrollTop = messagesContainer.scrollHeight
+      
+      // Update suggested questions visibility
+      updateSuggestedQuestionsVisibility()
     } else {
       // Fallback to full render
       renderMessages()
@@ -959,6 +1023,9 @@
 
     // Update new chat button visibility
     updateNewChatButtonVisibility()
+    
+    // Update suggested questions visibility
+    updateSuggestedQuestionsVisibility()
   }
 
   // Update new chat button visibility based on message count
@@ -970,6 +1037,19 @@
         newChatBtnContainer.classList.remove('hidden')
       } else {
         newChatBtnContainer.classList.add('hidden')
+      }
+    }
+  }
+
+  // Update suggested questions visibility based on message count
+  function updateSuggestedQuestionsVisibility() {
+    const suggestedQuestionsContainer = document.getElementById('copilot-suggested-questions')
+    if (suggestedQuestionsContainer) {
+      // Show suggested questions only when there are no messages
+      if (chatMessages.length === 0) {
+        suggestedQuestionsContainer.classList.remove('hidden')
+      } else {
+        suggestedQuestionsContainer.classList.add('hidden')
       }
     }
   }
@@ -1155,6 +1235,18 @@
           <h2>How can I help you today?</h2>
         </div>
       </div>
+      <div class="copilot-suggested-questions" id="copilot-suggested-questions">
+        <div class="copilot-suggested-questions-title">Suggested Questions</div>
+        ${config.suggestedQuestions
+          .map(
+            (question, index) => `
+          <button class="copilot-suggested-question" data-question-index="${index}">
+            ${escapeHtml(question)}
+          </button>
+        `
+          )
+          .join('')}
+      </div>
       <div class="copilot-chat-input-container">
         <div class="copilot-chat-input-wrapper">
           <textarea 
@@ -1182,6 +1274,18 @@
 
     // Initially hide the button (no messages yet)
     updateNewChatButtonVisibility()
+
+    // Setup suggested questions click handlers
+    const suggestedQuestionBtns = document.querySelectorAll('.copilot-suggested-question')
+    suggestedQuestionBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const questionIndex = this.getAttribute('data-question-index')
+        const question = config.suggestedQuestions[questionIndex]
+        if (question && !isStreaming) {
+          sendMessage(question)
+        }
+      })
+    })
 
     // Setup input handlers
     const input = document.getElementById('copilot-chat-input')
@@ -1222,6 +1326,7 @@
 
     updateConnectionStatus()
     renderMessages()
+    updateSuggestedQuestionsVisibility()
   }
 
   // Toggle chat window
@@ -1316,6 +1421,9 @@
 
     // Re-render to show empty screen
     renderMessages()
+    
+    // Update suggested questions visibility
+    updateSuggestedQuestionsVisibility()
 
     // Focus input
     const input = document.getElementById('copilot-chat-input')
