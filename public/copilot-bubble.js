@@ -92,10 +92,12 @@
         // Configure marked
         if (window.marked) {
           window.marked.setOptions({
-            breaks: false,
-            gfm: true,
+            breaks: false, // Don't treat single line breaks as <br>
+            gfm: true, // GitHub Flavored Markdown
             headerIds: false,
-            mangle: false
+            mangle: false,
+            pedantic: false,
+            smartLists: true
           })
         }
         resolve()
@@ -291,6 +293,11 @@
         transform: scale(0.95);
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       }
+      .copilot-chat-header-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
       .copilot-chat-header-close {
         width: 32px;
         height: 32px;
@@ -413,21 +420,32 @@
         line-height: 1.5;
       }
       .copilot-h1, .copilot-h2, .copilot-h3, .copilot-h4 {
-        margin: 0.6em 0 0.3em 0;
+        margin: 0.8em 0 0.4em 0;
         font-weight: 600;
         line-height: 1.3;
+        color: ${colors.foreground};
       }
       .copilot-h1 {
-        font-size: 1.3em;
+        font-size: 1.4em;
+        border-bottom: 2px solid ${colors.border};
+        padding-bottom: 0.3em;
       }
       .copilot-h2 {
-        font-size: 1.15em;
+        font-size: 1.25em;
+        border-bottom: 1px solid ${colors.border};
+        padding-bottom: 0.2em;
       }
       .copilot-h3 {
-        font-size: 1.05em;
+        font-size: 1.15em;
       }
       .copilot-h4 {
-        font-size: 1em;
+        font-size: 1.05em;
+      }
+      .copilot-message-content h1:first-child,
+      .copilot-message-content h2:first-child,
+      .copilot-message-content h3:first-child,
+      .copilot-message-content h4:first-child {
+        margin-top: 0;
       }
       .copilot-code-block {
         background: ${isDark ? '#1e1e1e' : '#f5f5f5'};
@@ -756,6 +774,7 @@
     if (data.type === 'streaming') {
       isStreaming = true
       animation = false
+      updateNewChatButtonState() // Disable new chat button while streaming
       messages.push(data)
 
       // Accumulate streaming response - check both 'message' and 'content' fields
@@ -781,6 +800,7 @@
 
       isStreaming = false
       animation = false
+      updateNewChatButtonState() // Re-enable new chat button when streaming ends
 
       // Get final message from accumulated messages or data
       const finalMessage =
@@ -802,6 +822,7 @@
       }
       isStreaming = false
       animation = false
+      updateNewChatButtonState() // Re-enable new chat button on error
       currentCitations = [] // Clear citations on error
       addMessage('bot', 'Sorry, I encountered an error. Please try again.')
       currentChatId = null // Reset on error
@@ -839,6 +860,7 @@
     addMessage('user', messageText)
     animation = true
     isStreaming = true
+    updateNewChatButtonState() // Disable new chat button when sending message
 
     // Show loading indicator
     addMessage('bot', '')
@@ -1041,6 +1063,21 @@
     }
   }
 
+  // Update new chat button state based on streaming status
+  function updateNewChatButtonState() {
+    const newChatBtn = document.getElementById('copilot-new-chat-btn')
+    if (newChatBtn) {
+      newChatBtn.disabled = isStreaming
+      if (isStreaming) {
+        newChatBtn.style.opacity = '0.5'
+        newChatBtn.style.cursor = 'not-allowed'
+      } else {
+        newChatBtn.style.opacity = '1'
+        newChatBtn.style.cursor = 'pointer'
+      }
+    }
+  }
+
   // Update suggested questions visibility based on message count
   function updateSuggestedQuestionsVisibility() {
     const suggestedQuestionsContainer = document.getElementById('copilot-suggested-questions')
@@ -1054,13 +1091,62 @@
     }
   }
 
+  // Process markdown content to ensure proper formatting
+  function processMarkdown(content) {
+    if (!content) return ''
+
+    // Remove any extra escaping or encoding issues
+    let processed = content
+      .replace(/\\n/g, '\n') // Replace literal \n with actual newlines
+      .replace(/\\#/g, '#') // Replace escaped # with actual #
+      .replace(/\\\*/g, '*') // Replace escaped * with actual *
+      .replace(/\\`/g, '`') // Replace escaped ` with actual `
+      .replace(/\\_/g, '_') // Replace escaped _ with actual _
+      .replace(/\\\[/g, '[') // Replace escaped [ with actual [
+      .replace(/\\\]/g, ']') // Replace escaped ] with actual ]
+      .trim()
+
+    // Ensure proper spacing around headers (critical for markdown parsing)
+    const lines = processed.split('\n')
+    const processedLines = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const prevLine = i > 0 ? lines[i - 1] : ''
+      const nextLine = i < lines.length - 1 ? lines[i + 1] : ''
+      const isHeader = /^#{1,6}\s/.test(line.trim())
+
+      if (isHeader) {
+        // Add blank line before header if previous line is not blank
+        if (prevLine.trim() !== '' && processedLines.length > 0) {
+          processedLines.push('')
+        }
+        processedLines.push(line)
+        // Add blank line after header if next line is not blank and not another header
+        if (nextLine.trim() !== '' && !/^#{1,6}\s/.test(nextLine.trim())) {
+          processedLines.push('')
+        }
+      } else {
+        processedLines.push(line)
+      }
+    }
+
+    return processedLines.join('\n')
+  }
+
   function formatMessage(content) {
     if (!content) return ''
+
+    // Process markdown to ensure proper formatting
+    const processedContent = processMarkdown(content)
 
     // Use marked.js if available, otherwise fall back to custom parser
     if (markedLoaded && window.marked) {
       try {
-        let html = window.marked.parse(content)
+        // Try both API formats (marked.parse for v5+, marked() for older versions)
+        let html = typeof window.marked.parse === 'function' 
+          ? window.marked.parse(processedContent)
+          : window.marked(processedContent)
 
         // Apply custom CSS classes to marked output
         html = html.replace(/<p>/g, '<p class="copilot-paragraph">')
@@ -1104,35 +1190,87 @@
     }
 
     // Minimal fallback parser (only used if marked.js fails to load)
-    let html = escapeHtml(content)
+    // DON'T escape HTML first - parse markdown first, then escape will happen naturally through proper HTML tags
+    let html = processedContent
 
-    // Basic code blocks
-    html = html.replace(
-      /```([\s\S]*?)```/g,
-      '<pre class="copilot-code-block"><code>$1</code></pre>'
-    )
+    // Basic code blocks (escape content inside)
+    html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
+      return `<pre class="copilot-code-block"><code>${escapeHtml(code)}</code></pre>`
+    })
 
-    // Inline code
-    html = html.replace(
-      /`([^`]+)`/g,
-      '<code class="copilot-inline-code">$1</code>'
-    )
+    // Inline code (escape content inside)
+    html = html.replace(/`([^`]+)`/g, (match, code) => {
+      return `<code class="copilot-inline-code">${escapeHtml(code)}</code>`
+    })
+
+    // Headers (must be processed before paragraphs)
+    html = html.replace(/^#### (.+)$/gm, (match, text) => {
+      return `<h4 class="copilot-h4">${escapeHtml(text)}</h4>`
+    })
+    html = html.replace(/^### (.+)$/gm, (match, text) => {
+      return `<h3 class="copilot-h3">${escapeHtml(text)}</h3>`
+    })
+    html = html.replace(/^## (.+)$/gm, (match, text) => {
+      return `<h2 class="copilot-h2">${escapeHtml(text)}</h2>`
+    })
+    html = html.replace(/^# (.+)$/gm, (match, text) => {
+      return `<h1 class="copilot-h1">${escapeHtml(text)}</h1>`
+    })
 
     // Bold
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    html = html.replace(/\*\*([^*]+)\*\*/g, (match, text) => {
+      return `<strong>${escapeHtml(text)}</strong>`
+    })
+
+    // Italic
+    html = html.replace(/\*([^*]+)\*/g, (match, text) => {
+      return `<em>${escapeHtml(text)}</em>`
+    })
 
     // Links
-    html = html.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer" class="copilot-link">$1</a>'
-    )
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="copilot-link">${escapeHtml(text)}</a>`
+    })
 
-    // Paragraphs
+    // Unordered lists
+    html = html.replace(/^\* (.+)$/gm, (match, text) => {
+      return `<li class="copilot-list-item">${escapeHtml(text)}</li>`
+    })
+    html = html.replace(/(<li class="copilot-list-item">[\s\S]*?<\/li>)/g, '<ul class="copilot-list">$1</ul>')
+
+    // Ordered lists
+    html = html.replace(/^\d+\. (.+)$/gm, (match, text) => {
+      return `<li class="copilot-list-item">${escapeHtml(text)}</li>`
+    })
+
+    // Paragraphs - now we need to escape remaining text
     html = html
       .split(/\n\n+/)
       .map(para => {
         if (!para.trim()) return ''
-        return `<p class="copilot-paragraph">${para.replace(/\n/g, ' ')}</p>`
+        // Don't wrap headers, lists, or code blocks in paragraphs
+        if (
+          para.match(/^<h[1-6]/) ||
+          para.match(/^<ul/) ||
+          para.match(/^<ol/) ||
+          para.match(/^<pre/) ||
+          para.match(/^<li/)
+        ) {
+          return para
+        }
+        // Escape any remaining plain text
+        const escapedText = para
+          .split(/(<[^>]+>)/g) // Split on HTML tags
+          .map((part, i) => {
+            // Every other part is either HTML tag or plain text
+            if (i % 2 === 0 && !part.match(/^<[^>]+>$/)) {
+              // Plain text - escape it
+              return escapeHtml(part)
+            }
+            return part
+          })
+          .join('')
+        return `<p class="copilot-paragraph">${escapedText.replace(/\n/g, ' ')}</p>`
       })
       .join('')
 
@@ -1274,6 +1412,9 @@
 
     // Initially hide the button (no messages yet)
     updateNewChatButtonVisibility()
+    
+    // Set initial button state
+    updateNewChatButtonState()
 
     // Setup suggested questions click handlers
     const suggestedQuestionBtns = document.querySelectorAll('.copilot-suggested-question')
@@ -1424,6 +1565,9 @@
     
     // Update suggested questions visibility
     updateSuggestedQuestionsVisibility()
+    
+    // Update new chat button state (should be enabled after reset)
+    updateNewChatButtonState()
 
     // Focus input
     const input = document.getElementById('copilot-chat-input')
