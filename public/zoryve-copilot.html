@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copilot Widget Example</title>
+</head>
+
+<body>
+    <h1>Copilot Widget Example</h1>
+    <p>Check the bottom-right corner for the AI copilot bubble.</p>
+</body>
+
+<!-- Configure the widget before loading it -->
+<script>
+    window.CopilotBubbleConfig = {
+        // REST API URL - REQUIRED
+        apiUrl: 'https://zoryve-chatbot-gggkb3g0cbe0emee.eastus2-01.azurewebsites.net/send_message',
+        botIconUrl: 'http://localhost:3000/arcutis-icon.png',
+        // Optional configuration
+        position: 'bottom-right', // 'bottom-right', 'bottom-left', 'top-right', 'top-left'
+        primaryColor: '#a67c52', // Vintage paper primary color
+        theme: 'light', // 'light' or 'dark'
+        bubbleText: 'AI',
+    };
+</script>
+<script src="http://localhost:3000/zoryve-copilot.js"></script>
+
+</html>
