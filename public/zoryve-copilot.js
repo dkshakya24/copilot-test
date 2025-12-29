@@ -35,10 +35,10 @@
       role: window.CopilotBubbleConfig?.role || 'user',
       botIconUrl: window.CopilotBubbleConfig?.botIconUrl || '', // Bot avatar icon URL
       suggestedQuestions: window.CopilotBubbleConfig?.suggestedQuestions || [
-        'What equity-related policies and plans are available for employees?',
-        'What are all the travel policies, including domestic and international travel guidelines?',
-        'Show me all HR policies related to employee benefits and compensation.',
-        'What finance policies cover expense reimbursement and budget approval processes?'
+        'Is ZORYVE cream approved for treating plaque psoriasis?',
+        'What are the approved uses for ZORYVE?',
+        'How is ZORYVE cream used for plaque psoriasis?',
+        'What conditions is ZORYVE cream approved to treat?'
       ]
     },
     window.CopilotBubbleConfig || {}
