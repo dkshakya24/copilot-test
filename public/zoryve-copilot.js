@@ -28,17 +28,17 @@
       apiUrl: window.CopilotBubbleConfig?.apiUrl || 'https://zoryve-chatbot-gggkb3g0cbe0emee.eastus2-01.azurewebsites.net/send_message',
       position: window.CopilotBubbleConfig?.position || 'bottom-right',
       zIndex: window.CopilotBubbleConfig?.zIndex || 999999,
-      primaryColor: window.CopilotBubbleConfig?.primaryColor || '#a67c52', // Vintage paper primary
+      primaryColor: window.CopilotBubbleConfig?.primaryColor || '#016c8e', // Professional blue primary
       bubbleText: window.CopilotBubbleConfig?.bubbleText || 'AI',
       theme: window.CopilotBubbleConfig?.theme || 'light',
       userId: window.CopilotBubbleConfig?.userId || 'guest@example.com',
       role: window.CopilotBubbleConfig?.role || 'user',
       botIconUrl: window.CopilotBubbleConfig?.botIconUrl || '', // Bot avatar icon URL
       suggestedQuestions: window.CopilotBubbleConfig?.suggestedQuestions || [
-        'What equity-related policies and plans are available for employees?',
-        'What are all the travel policies, including domestic and international travel guidelines?',
-        'Show me all HR policies related to employee benefits and compensation.',
-        'What finance policies cover expense reimbursement and budget approval processes?'
+        'Is ZORYVE cream approved for treating plaque psoriasis?',
+        'What are the approved uses for ZORYVE?',
+        'How is ZORYVE cream used for plaque psoriasis?',
+        'What conditions is ZORYVE cream approved to treat?'
       ]
     },
     window.CopilotBubbleConfig || {}
@@ -100,27 +100,28 @@
     })
   }
 
-  // Vintage Paper Theme Colors
+  // Professional Theme Colors - Blue & Gold
+  const accentColor = '#ffb81c' // Gold accent color
   const themeColors = {
     light: {
-      background: '#fef9f2', // hsl(42, 25%, 97%)
-      foreground: '#4a3d2f', // hsl(30, 15%, 25%)
-      card: '#fffcf5', // hsl(42, 4%, 98%)
-      primary: '#a67c52', // hsl(30, 33%, 49%)
-      primaryForeground: '#fef9f2',
-      border: '#d4c4a8', // hsl(35, 20%, 80%)
-      muted: '#c4b5a0', // hsl(42, 15%, 75%)
-      mutedForeground: '#6b5d4f' // hsl(30, 10%, 45%)
+      background: '#f8fafb', // Light neutral background
+      foreground: '#1a202c', // Dark text for readability
+      card: '#ffffff', // Pure white cards
+      primary: '#016c8e', // Professional blue
+      primaryForeground: '#ffffff',
+      border: '#e2e8f0', // Subtle border
+      muted: '#f1f5f9', // Light muted background
+      mutedForeground: '#64748b' // Medium gray text
     },
     dark: {
-      background: '#1f1812', // hsl(30, 15%, 12%)
-      foreground: '#e6d9c4', // hsl(42, 20%, 90%)
-      card: '#261f18', // hsl(30, 15%, 15%)
-      primary: '#a67c52',
-      primaryForeground: '#e6d9c4',
-      border: '#3d3228', // hsl(30, 10%, 25%)
-      muted: '#3d3228',
-      mutedForeground: '#b8a890' // hsl(42, 15%, 70%)
+      background: '#0f172a', // Dark blue-gray background
+      foreground: '#f1f5f9', // Light text
+      card: '#1e293b', // Dark card background
+      primary: '#016c8e',
+      primaryForeground: '#ffffff',
+      border: '#334155', // Dark border
+      muted: '#1e293b',
+      mutedForeground: '#94a3b8' // Light gray text
     }
   }
 
@@ -156,70 +157,88 @@
         left: 20px;
       }
       .copilot-bubble-button {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
-        background: ${colors.card};
-        border: 2px solid ${colors.border};
+        background: linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%);
+        border: none;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 24px rgba(1, 108, 142, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: ${colors.foreground};
-        font-weight: bold;
-        font-size: 18px;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 20px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
         padding: 0px;
       }
+      .copilot-bubble-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, ${accentColor} 0%, #ffa500 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .copilot-bubble-button:hover::before {
+        opacity: 0.2;
+      }
       .copilot-bubble-button img {
         width: 70%;
         height: 70%;
         object-fit: contain;
+        position: relative;
+        z-index: 1;
       }
       .copilot-bubble-button:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15);
+        transform: scale(1.08) translateY(-2px);
+        box-shadow: 0 12px 32px rgba(1, 108, 142, 0.4), 0 6px 16px rgba(0, 0, 0, 0.2);
       }
       .copilot-bubble-button:active {
-        transform: scale(0.95);
+        transform: scale(0.96) translateY(0);
       }
       .copilot-bubble-badge {
         position: absolute;
         top: -4px;
         right: -4px;
-        background: #ef4444;
-        color: white;
+        background: ${accentColor};
+        color: #ffffff;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 11px;
         font-weight: bold;
         border: 2px solid ${colors.card};
+        box-shadow: 0 2px 8px rgba(255, 184, 28, 0.4);
       }
       .copilot-chat-window {
         position: fixed;
-        width: 600px;
-        height: 100vh;
+        width: 420px;
+        height: 680px;
         max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 40px);
         background: ${colors.card};
-        border-radius: 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
         display: flex;
         flex-direction: column;
         overflow: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         opacity: 0;
-        transform: scale(0.9) translateY(10px);
+        transform: scale(0.95) translateY(20px);
         pointer-events: none;
         border: 1px solid ${colors.border};
-        top: 0;
-        bottom: 0;
+        top: auto;
+        bottom: 90px;
       }
       .copilot-chat-window.open {
         opacity: 1;
@@ -227,32 +246,40 @@
         pointer-events: all;
       }
       .copilot-chat-window.bottom-right {
-        right: 0;
+        right: 20px;
+        bottom: 90px;
       }
       .copilot-chat-window.bottom-left {
-        left: 0;
+        left: 20px;
+        bottom: 90px;
       }
       .copilot-chat-window.top-right {
-        right: 0;
+        right: 20px;
+        top: 20px;
+        bottom: auto;
       }
       .copilot-chat-window.top-left {
-        left: 0;
+        left: 20px;
+        top: 20px;
+        bottom: auto;
       }
       .copilot-chat-header {
-        padding: 16px 20px;
-        background: ${colors.card};
-        border-bottom: 1px solid ${colors.border};
+        padding: 18px 24px;
+        background: linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%);
+        border-bottom: none;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
       .copilot-chat-header-title {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
-        color: ${colors.foreground};
+        color: #ffffff;
         display: flex;
         align-items: center;
+        letter-spacing: 0.3px;
       }
       .copilot-chat-header-actions {
         display: flex;
@@ -260,12 +287,12 @@
         gap: 8px;
       }
       .copilot-chat-header-button {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 8px;
-        border: 1px solid ${colors.border};
-        background: ${colors.card};
-        color: ${colors.foreground};
+        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -273,38 +300,38 @@
         transition: all 0.2s;
         font-size: 18px;
         position: relative;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(10px);
       }
       .copilot-chat-header-button:hover {
-        background: ${colors.muted};
-        border-color: ${config.primaryColor}40;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.05);
       }
       .copilot-chat-header-button:active {
         transform: scale(0.95);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       }
       .copilot-chat-header-button:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
         pointer-events: none;
       }
       .copilot-chat-header-close {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 8px;
         border: none;
-        background: transparent;
-        color: ${colors.foreground};
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
         font-size: 20px;
+        backdrop-filter: blur(10px);
       }
       .copilot-chat-header-close:hover {
-        background: ${colors.muted};
+        background: rgba(255, 184, 28, 0.3);
+        transform: scale(1.05);
       }
       .copilot-tooltip {
         position: relative;
@@ -315,11 +342,11 @@
       .copilot-tooltip .copilot-tooltip-text {
         visibility: hidden;
         opacity: 0;
-        background-color: ${colors.foreground};
-        color: ${colors.card};
+        background-color: ${config.primaryColor};
+        color: #ffffff;
         text-align: center;
-        border-radius: 6px;
-        padding: 6px 10px;
+        border-radius: 8px;
+        padding: 8px 12px;
         position: absolute;
         z-index: 1000000;
         top: 125%;
@@ -330,7 +357,7 @@
         font-weight: 500;
         transition: opacity 0.2s, visibility 0.2s;
         pointer-events: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(1, 108, 142, 0.3);
       }
       .copilot-tooltip .copilot-tooltip-text::after {
         content: "";
@@ -340,7 +367,7 @@
         transform: translateX(-50%);
         border-width: 5px;
         border-style: solid;
-        border-color: transparent transparent ${colors.foreground} transparent;
+        border-color: transparent transparent ${config.primaryColor} transparent;
       }
       .copilot-tooltip:hover .copilot-tooltip-text {
         visibility: visible;
@@ -380,25 +407,25 @@
         justify-content: flex-end;
       }
       .copilot-message-content {
-        max-width: 80%;
-        padding: 12px 16px;
-        border-radius: 12px;
+        max-width: 75%;
+        padding: 14px 18px;
+        border-radius: 18px;
         word-wrap: break-word;
-        line-height: 1.5;
-        font-size: 13px;
+        line-height: 1.6;
+        font-size: 14px;
       }
       .copilot-message-user .copilot-message-content {
-        background: ${config.primaryColor};
-        color: ${colors.primaryForeground};
+        background: linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%);
+        color: #ffffff;
         border-bottom-right-radius: 4px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(1, 108, 142, 0.25);
       }
       .copilot-message-bot .copilot-message-content {
         background: ${colors.card};
         color: ${colors.foreground};
         border: 1px solid ${colors.border};
         border-bottom-left-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
       .copilot-message-bot .copilot-message-content :first-child {
         margin-top: 0;
@@ -485,18 +512,23 @@
       }
       .copilot-link {
         color: ${config.primaryColor};
-        text-decoration: underline;
-        text-decoration-color: ${config.primaryColor}80;
+        text-decoration: none;
+        border-bottom: 1px solid ${config.primaryColor}60;
+        transition: all 0.2s;
       }
       .copilot-link:hover {
-        text-decoration-color: ${config.primaryColor};
+        color: ${accentColor};
+        border-bottom-color: ${accentColor};
       }
       .copilot-blockquote {
-        border-left: 3px solid ${colors.border};
+        border-left: 4px solid ${accentColor};
         padding-left: 1em;
         margin: 0.3em 0;
         color: ${colors.mutedForeground};
         font-style: italic;
+        background: ${colors.muted};
+        padding: 12px 16px;
+        border-radius: 6px;
       }
       .copilot-hr {
         border: none;
@@ -504,8 +536,8 @@
         margin: 0.6em 0;
       }
       .copilot-message-avatar {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -514,9 +546,21 @@
         border: 2px solid ${colors.border};
         background: ${colors.card};
         color: ${colors.foreground};
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 600;
         overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .copilot-message-bot .copilot-message-avatar {
+        background: linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%);
+        color: #ffffff;
+        border-color: ${config.primaryColor};
+      }
+      .copilot-message-user .copilot-message-avatar {
+        order: 2;
+        background: ${accentColor};
+        color: #ffffff;
+        border-color: ${accentColor};
       }
       .copilot-message-avatar img {
         width: 100%;
@@ -524,31 +568,41 @@
         object-fit: contain;
         border-radius: 50%;
       }
-      .copilot-message-user .copilot-message-avatar {
-        order: 2;
-        background: ${colors.card};
+      .copilot-message-avatar svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
       }
       .copilot-empty-screen {
         flex: 1;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 40px 20px;
+        padding: 60px 20px;
         text-align: center;
       }
       .copilot-empty-screen h2 {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 600;
         color: ${colors.foreground};
-        margin: 0;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.2px;
+      }
+      .copilot-empty-screen::before {
+        content: '💬';
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
       }
       .copilot-suggested-questions {
-        padding: 12px 16px;
+        padding: 16px 20px;
         background: ${colors.background};
         border-top: 1px solid ${colors.border};
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
         max-height: 200px;
         overflow-y: auto;
         scrollbar-width: thin;
@@ -569,111 +623,138 @@
       }
       .copilot-suggested-questions-title {
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
         color: ${colors.mutedForeground};
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
       }
       .copilot-suggested-question {
-        padding: 10px 12px;
+        padding: 12px 16px;
         background: ${colors.card};
-        border: 1px solid ${colors.border};
-        border-radius: 8px;
+        border: 1.5px solid ${colors.border};
+        border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s;
-        font-size: 12px;
+        font-size: 13px;
         color: ${colors.foreground};
         text-align: left;
-        line-height: 1.4;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        line-height: 1.5;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        position: relative;
+      }
+      .copilot-suggested-question::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: ${config.primaryColor};
+        border-radius: 10px 0 0 10px;
+        opacity: 0;
+        transition: opacity 0.2s;
       }
       .copilot-suggested-question:hover {
         background: ${colors.muted};
         border-color: ${config.primaryColor};
-        transform: translateX(2px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(1, 108, 142, 0.15);
+      }
+      .copilot-suggested-question:hover::before {
+        opacity: 1;
       }
       .copilot-suggested-question:active {
-        transform: scale(0.98);
+        transform: translateX(2px) scale(0.98);
       }
       .copilot-chat-input-container {
-        padding: 12px 16px;
+        padding: 16px 20px;
         background: ${colors.card};
         border-top: 1px solid ${colors.border};
         flex-shrink: 0;
       }
       .copilot-chat-input-wrapper {
         display: flex;
-        gap: 6px;
-        align-items: center;
-        background: ${colors.card};
-        border: 1px solid ${colors.border};
-        border-radius: 10px;
-        padding: 6px;
+        gap: 8px;
+        align-items: flex-end;
+        background: ${colors.muted};
+        border: 2px solid ${colors.border};
+        border-radius: 12px;
+        padding: 8px 12px;
         transition: all 0.2s;
       }
       .copilot-chat-input-wrapper:focus-within {
         border-color: ${config.primaryColor};
-        box-shadow: 0 0 0 3px ${config.primaryColor}20;
+        box-shadow: 0 0 0 4px ${config.primaryColor}15;
+        background: ${colors.card};
       }
       .copilot-chat-input {
         flex: 1;
         border: none;
         background: transparent;
         color: ${colors.foreground};
-        font-size: 13px;
-        padding: 6px 10px;
+        font-size: 14px;
+        padding: 8px 4px;
         resize: none;
         outline: none;
-        max-height: 100px;
-        min-height: 32px;
+        max-height: 120px;
+        min-height: 24px;
         font-family: inherit;
-        line-height: 1.4;
+        line-height: 1.5;
       }
       .copilot-chat-input::placeholder {
         color: ${colors.mutedForeground};
       }
       .copilot-chat-send {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
         border: none;
-        background: ${config.primaryColor};
-        color: ${colors.primaryForeground};
+        background: linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%);
+        color: #ffffff;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
         flex-shrink: 0;
-        font-size: 14px;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(1, 108, 142, 0.3);
       }
       .copilot-chat-send:hover:not(:disabled) {
-        background: ${config.primaryColor}dd;
-        transform: scale(1.05);
+        background: linear-gradient(135deg, #014d6b 0%, ${config.primaryColor} 100%);
+        transform: scale(1.05) translateY(-1px);
+        box-shadow: 0 4px 12px rgba(1, 108, 142, 0.4);
       }
       .copilot-chat-send:active:not(:disabled) {
-        transform: scale(0.95);
+        transform: scale(0.95) translateY(0);
       }
       .copilot-chat-send:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
+        transform: none;
       }
       .copilot-status-indicator {
         display: inline-block;
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
-        margin-right: 8px;
-        background: #10b981;
+        margin-right: 10px;
+        background: ${accentColor};
+        box-shadow: 0 0 8px ${accentColor}80;
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); }
       }
       .copilot-spinner {
         display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid ${colors.border};
+        width: 20px;
+        height: 20px;
+        border: 3px solid ${colors.border};
         border-top-color: ${config.primaryColor};
+        border-right-color: ${accentColor};
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       }
@@ -685,13 +766,20 @@
           width: 100vw;
           height: 100vh;
           max-width: 100vw;
+          max-height: 100vh;
+          border-radius: 0;
+          bottom: 0 !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
         }
-        .copilot-chat-window.bottom-right,
-        .copilot-chat-window.bottom-left,
-        .copilot-chat-window.top-right,
-        .copilot-chat-window.top-left {
-          left: 0;
-          right: 0;
+        .copilot-bubble-container.bottom-right,
+        .copilot-bubble-container.bottom-left {
+          bottom: 16px;
+        }
+        .copilot-bubble-container.top-right,
+        .copilot-bubble-container.top-left {
+          top: 16px;
         }
       }
     `
@@ -848,16 +936,16 @@
       .map((path, index) => {
         const documentName = `Document ${index + 1}`
         return `
-        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${colors.background}; border: 1px solid ${colors.border}; border-radius: 6px; margin-bottom: 6px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${config.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: ${colors.muted}; border: 1.5px solid ${colors.border}; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s;" onmouseover="this.style.borderColor='${config.primaryColor}'; this.style.background='${colors.card}';" onmouseout="this.style.borderColor='${colors.border}'; this.style.background='${colors.muted}';">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${config.primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
             <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          <span style="flex: 1; font-size: 12px; color: ${colors.foreground}; word-break: break-all;">${documentName}</span>
-          <a href="${escapeHtml(path)}" target="_blank" rel="noopener noreferrer" style="color: ${config.primaryColor}; text-decoration: none; font-size: 11px; white-space: nowrap; padding: 4px 8px; border: 1px solid ${config.primaryColor}; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='${config.primaryColor}'; this.style.color='${colors.primaryForeground}';" onmouseout="this.style.background='transparent'; this.style.color='${config.primaryColor}';">
+          <span style="flex: 1; font-size: 13px; color: ${colors.foreground}; word-break: break-all; font-weight: 500;">${documentName}</span>
+          <a href="${escapeHtml(path)}" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none; font-size: 12px; white-space: nowrap; padding: 6px 12px; background: linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%); border-radius: 6px; transition: all 0.2s; font-weight: 500; box-shadow: 0 2px 4px rgba(1, 108, 142, 0.2);" onmouseover="this.style.background='linear-gradient(135deg, #014d6b 0%, ${config.primaryColor} 100%)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(1, 108, 142, 0.3)';" onmouseout="this.style.background='linear-gradient(135deg, ${config.primaryColor} 0%, #014d6b 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(1, 108, 142, 0.2)';">
             View
           </a>
         </div>
@@ -866,8 +954,12 @@
       .join('')
 
     return `
-      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid ${colors.border};">
-        <div style="font-size: 11px; font-weight: 600; color: ${colors.mutedForeground}; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 2px solid ${colors.border};">
+        <div style="font-size: 11px; font-weight: 700; color: ${config.primaryColor}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${config.primaryColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
           Referenced Documents (${pdfPaths.length})
         </div>
         ${pdfItems}
@@ -1220,17 +1312,18 @@
     const textEl = document.getElementById('copilot-connection-text')
 
     if (statusEl) {
-      // For REST API, always show green if API URL is configured
-      statusEl.style.background = config.apiUrl ? '#10b981' : '#ef4444'
+      // For REST API, always show gold accent if API URL is configured
+      statusEl.style.background = config.apiUrl ? accentColor : '#ef4444'
+      statusEl.style.boxShadow = config.apiUrl ? `0 0 8px ${accentColor}80` : 'none'
     }
 
     if (textEl) {
       if (!config.apiUrl) {
         textEl.textContent = 'Not configured'
-        textEl.style.color = '#ef4444'
+        textEl.style.color = '#ff6b6b'
       } else {
         textEl.textContent = 'Ready'
-        textEl.style.color = '#10b981'
+        textEl.style.color = 'rgba(255, 255, 255, 0.9)'
       }
     }
   }
@@ -1279,8 +1372,8 @@
       <div class="copilot-chat-header">
         <div class="copilot-chat-header-title">
           <span class="copilot-status-indicator" id="copilot-status-indicator"></span>
-          <span>Arcutis AI Copilot</span>
-          <span style="font-size: 10px; font-weight: normal; margin-left: 8px; opacity: 0.7;" id="copilot-connection-text">${connectionStatus}</span>
+          <span>Zoryve AI</span>
+          <span style="font-size: 11px; font-weight: normal; margin-left: 10px; opacity: 0.85; color: rgba(255, 255, 255, 0.9);" id="copilot-connection-text">${connectionStatus}</span>
         </div>
         <div class="copilot-chat-header-actions">
           <div class="copilot-tooltip hidden" id="copilot-new-chat-container">
