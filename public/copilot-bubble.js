@@ -136,6 +136,29 @@
   const colors = themeColors[config.theme] || themeColors.light
   const isDark = config.theme === 'dark'
 
+  // Helper function to add opacity to hex color
+  function hexToRgba(hex, opacity) {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+
+  // Helper function to adjust opacity (for colors already in rgba or hex)
+  function withOpacity(color, opacity) {
+    if (!color) return color
+    if (color.startsWith('#')) {
+      return hexToRgba(color, opacity)
+    }
+    // If already rgba, extract and update
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    if (match) {
+      return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${opacity})`
+    }
+    // If color doesn't match expected formats, return as-is
+    return color
+  }
+
   // Create styles
   function injectStyles() {
     if (document.getElementById('copilot-bubble-styles')) return
@@ -403,11 +426,11 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
       .copilot-message-bot .copilot-message-content {
-        background: ${colors.card};
-        color: ${colors.foreground};
-        border: 1px solid ${colors.border};
+        background: #ffffff;
+        color: ${withOpacity(colors.foreground, 0.95)};
+        border: 1px solid ${withOpacity(colors.border, 0.7)};
         border-bottom-left-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
       }
       .copilot-message-bot .copilot-message-content :first-child {
         margin-top: 0;
@@ -416,30 +439,46 @@
         margin-bottom: 0;
       }
       .copilot-paragraph {
-        margin: 0.25em 0;
-        line-height: 1.5;
+        margin: 0.5em 0;
+        line-height: 1.8;
+        color: ${withOpacity(colors.foreground, 0.95)};
       }
       .copilot-h1, .copilot-h2, .copilot-h3, .copilot-h4 {
-        margin: 0.8em 0 0.4em 0;
         font-weight: 600;
         line-height: 1.3;
-        color: ${colors.foreground};
+        color: ${withOpacity(colors.foreground, 0.98)};
+        margin-top: 1.2em;
+        margin-bottom: 0.6em;
       }
       .copilot-h1 {
         font-size: 1.4em;
-        border-bottom: 2px solid ${colors.border};
-        padding-bottom: 0.3em;
+        font-weight: 700;
+        border-bottom: 2px solid ${withOpacity(config.primaryColor, 0.4)};
+        padding-bottom: 0.4em;
+        margin-top: 1.4em;
+        margin-bottom: 0.8em;
       }
       .copilot-h2 {
         font-size: 1.25em;
-        border-bottom: 1px solid ${colors.border};
-        padding-bottom: 0.2em;
+        font-weight: 700;
+        border-bottom: 1px solid ${withOpacity(config.primaryColor, 0.3)};
+        padding-bottom: 0.3em;
+        margin-top: 1.2em;
+        margin-bottom: 0.7em;
       }
       .copilot-h3 {
         font-size: 1.15em;
+        font-weight: 600;
+        margin-top: 1em;
+        margin-bottom: 0.6em;
+        color: ${withOpacity(colors.foreground, 0.97)};
       }
       .copilot-h4 {
         font-size: 1.05em;
+        font-weight: 600;
+        margin-top: 0.9em;
+        margin-bottom: 0.5em;
+        color: ${withOpacity(colors.foreground, 0.96)};
       }
       .copilot-message-content h1:first-child,
       .copilot-message-content h2:first-child,
@@ -448,21 +487,22 @@
         margin-top: 0;
       }
       .copilot-code-block {
-        background: ${isDark ? '#1e1e1e' : '#f5f5f5'};
-        border: 1px solid ${colors.border};
+        background: ${isDark ? '#1e1e1e' : withOpacity(config.primaryColor, 0.15)};
+        border: 1px solid ${withOpacity(config.primaryColor, 0.3)};
         border-radius: 6px;
         padding: 12px;
-        margin: 0.3em 0;
+        margin: 0.6em 0;
         overflow-x: auto;
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         font-size: 0.9em;
         line-height: 1.5;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       }
       .copilot-code-block code {
         background: transparent;
         padding: 0;
         border: none;
-        color: ${colors.foreground};
+        color: ${withOpacity(colors.foreground, 0.95)};
         font-family: inherit;
       }
       pre.copilot-code-block {
@@ -470,21 +510,24 @@
         word-wrap: normal;
       }
       .copilot-inline-code {
-        background: ${isDark ? '#2d2d2d' : '#f0f0f0'};
-        border: 1px solid ${colors.border};
-        border-radius: 3px;
-        padding: 2px 6px;
+        background: ${isDark ? '#2d2d2d' : withOpacity(config.primaryColor, 0.15)};
+        border: 1px solid ${withOpacity(config.primaryColor, 0.3)};
+        border-radius: 4px;
+        padding: 3px 8px;
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         font-size: 0.9em;
-        color: ${isDark ? '#d4d4d4' : '#e83e8c'};
+        font-weight: 600;
+        color: ${config.primaryColor};
       }
       .copilot-list {
-        margin: 0.3em 0;
+        margin: 0.8em 0;
         padding-left: 1.5em;
+        list-style-position: outside;
       }
       .copilot-list-item {
-        margin: 0.15em 0;
-        line-height: 1.5;
+        margin: 0.3em 0;
+        line-height: 1.6;
+        color: ${withOpacity(colors.foreground, 0.95)};
       }
       ol.copilot-list {
         list-style-type: decimal;
@@ -492,25 +535,37 @@
       ul.copilot-list {
         list-style-type: disc;
       }
+      .copilot-list::marker,
+      .copilot-list-item::marker {
+        color: ${withOpacity(config.primaryColor, 0.9)};
+        font-weight: 600;
+      }
       .copilot-link {
         color: ${config.primaryColor};
         text-decoration: underline;
-        text-decoration-color: ${config.primaryColor}80;
+        text-decoration-color: ${withOpacity(config.primaryColor, 0.6)};
+        text-underline-offset: 3px;
+        font-weight: 500;
+        transition: all 0.2s;
       }
       .copilot-link:hover {
         text-decoration-color: ${config.primaryColor};
+        text-underline-offset: 4px;
       }
       .copilot-blockquote {
-        border-left: 3px solid ${colors.border};
-        padding-left: 1em;
-        margin: 0.3em 0;
-        color: ${colors.mutedForeground};
+        border-left: 4px solid ${withOpacity(config.primaryColor, 0.6)};
+        padding: 0.8em 1em;
+        margin: 0.8em 0;
+        color: ${withOpacity(colors.foreground, 0.92)};
+        background: ${withOpacity(config.primaryColor, 0.08)};
+        border-radius: 0 6px 6px 0;
         font-style: italic;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       }
       .copilot-hr {
         border: none;
-        border-top: 1px solid ${colors.border};
-        margin: 0.6em 0;
+        border-top: 2px solid ${withOpacity(colors.border, 0.6)};
+        margin: 1.2em 0;
       }
       .copilot-message-avatar {
         width: 32px;
@@ -629,7 +684,7 @@
       .copilot-chat-input {
         flex: 1;
         border: none;
-        background: transparent;
+        background: #ffffff;
         color: ${colors.foreground};
         font-size: 13px;
         padding: 6px 10px;
@@ -925,7 +980,7 @@
             <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
           <span style="flex: 1; font-size: 12px; color: ${colors.foreground}; word-break: break-all;">${documentName}</span>
-          <a href="${escapeHtml(path)}" target="_blank" rel="noopener noreferrer" style="color: ${config.primaryColor}; text-decoration: none; font-size: 11px; white-space: nowrap; padding: 4px 8px; border: 1px solid ${config.primaryColor}; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='${config.primaryColor}'; this.style.color='${colors.primaryForeground}';" onmouseout="this.style.background='transparent'; this.style.color='${config.primaryColor}';">
+          <a href="${escapeHtml(path)}" target="_blank" rel="noopener noreferrer" style="color: ${config.primaryColor}; text-decoration: none; font-size: 11px; white-space: nowrap; padding: 4px 8px; border: 1px solid ${config.primaryColor}; border-radius: 4px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='${config.primaryColor}'; this.style.color='${colors.primaryForeground}';" onmouseout="this.style.background='transparent'; this.style.color='${config.primaryColor}';" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">
             View
           </a>
         </div>
@@ -1353,7 +1408,7 @@
       <div class="copilot-chat-header">
         <div class="copilot-chat-header-title">
           <span class="copilot-status-indicator" id="copilot-status-indicator"></span>
-          <span>Arcutis AI Copilot</span>
+          <span>Arcutis AI</span>
           <span style="font-size: 10px; font-weight: normal; margin-left: 8px; opacity: 0.7;" id="copilot-connection-text">${connectionStatus}</span>
         </div>
         <div class="copilot-chat-header-actions">
