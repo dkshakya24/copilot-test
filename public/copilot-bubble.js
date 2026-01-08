@@ -87,7 +87,7 @@
 
       const script = document.createElement('script')
       // Use local marked.js to avoid CSP violations
-      script.src = '/marked.min.js'
+      script.src = 'https://copilot-test-theta.vercel.app/marked.min.js'
       script.onload = () => {
         markedLoaded = true
         // Configure marked
