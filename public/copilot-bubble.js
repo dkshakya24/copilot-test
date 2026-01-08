@@ -59,7 +59,6 @@
   let lastBotMessageElement = null
   let currentChatId = null // Track current chat session to ignore old messages
   let currentCitations = [] // Store citations for current response
-  let markedLoaded = false // Track if marked.js is loaded
 
   // Generate UUID for chatter_id (will be set when starting a new chat)
   let chatterId = null
@@ -76,39 +75,7 @@
     )
   }
 
-  // Load marked.js library dynamically
-  function loadMarkedLibrary() {
-    return new Promise((resolve, reject) => {
-      if (window.marked) {
-        markedLoaded = true
-        resolve()
-        return
-      }
-
-      const script = document.createElement('script')
-      // Use local marked.js to avoid CSP violations
-      script.src = 'https://copilot-test-theta.vercel.app/marked.min.js'
-      script.onload = () => {
-        markedLoaded = true
-        // Configure marked
-        if (window.marked) {
-          window.marked.setOptions({
-            breaks: false, // Don't treat single line breaks as <br>
-            gfm: true, // GitHub Flavored Markdown
-            headerIds: false,
-            mangle: false,
-            pedantic: false,
-            smartLists: true
-          })
-        }
-        resolve()
-      }
-      script.onerror = () => {
-        reject()
-      }
-      document.head.appendChild(script)
-    })
-  }
+  // Custom markdown parser - handles all markdown features without external dependencies
 
   // Vintage Paper Theme Colors
   const themeColors = {
@@ -1195,138 +1162,231 @@
 
     // Process markdown to ensure proper formatting
     const processedContent = processMarkdown(content)
+    let html = processedContent
 
-    // Use marked.js if available, otherwise fall back to custom parser
-    if (markedLoaded && window.marked) {
-      try {
-        // Try both API formats (marked.parse for v5+, marked() for older versions)
-        let html = typeof window.marked.parse === 'function' 
-          ? window.marked.parse(processedContent)
-          : window.marked(processedContent)
+    // Helper function to process inline markdown within a text block
+    // Processes markdown patterns first, then escapes remaining text for safety
+    function processInlineMarkdown(text) {
+      // Store placeholders for inline code to avoid processing markdown inside them
+      const codePlaceholders = []
+      let placeholderIndex = 0
+      
+      // Replace inline code with placeholders (process first to protect code content)
+      text = text.replace(/`([^`]+)`/g, (match, code) => {
+        const placeholder = `__CODE_PLACEHOLDER_${placeholderIndex}__`
+        codePlaceholders[placeholderIndex] = code
+        placeholderIndex++
+        return placeholder
+      })
 
-        // Apply custom CSS classes to marked output
-        html = html.replace(/<p>/g, '<p class="copilot-paragraph">')
-        html = html.replace(/<h1>/g, '<h1 class="copilot-h1">')
-        html = html.replace(/<h2>/g, '<h2 class="copilot-h2">')
-        html = html.replace(/<h3>/g, '<h3 class="copilot-h3">')
-        html = html.replace(/<h4>/g, '<h4 class="copilot-h4">')
-        html = html.replace(/<ul>/g, '<ul class="copilot-list">')
-        html = html.replace(/<ol>/g, '<ol class="copilot-list">')
-        html = html.replace(/<li>/g, '<li class="copilot-list-item">')
-        html = html.replace(/<code>/g, '<code class="copilot-inline-code">')
-        html = html.replace(
-          /<pre><code class="copilot-inline-code"/g,
-          '<pre class="copilot-code-block"><code'
-        )
-        html = html.replace(
-          /<blockquote>/g,
-          '<blockquote class="copilot-blockquote">'
-        )
-        html = html.replace(/<hr>/g, '<hr class="copilot-hr">')
-        html = html.replace(/<hr\/>/g, '<hr class="copilot-hr" />')
-        html = html.replace(
-          /<a /g,
-          '<a class="copilot-link" target="_blank" rel="noopener noreferrer" '
-        )
+      // Process bold (**text** or __text__) - process before italic
+      text = text.replace(/\*\*([^*]+?)\*\*/g, (match, innerText) => {
+        // Escape the inner text for safety
+        return `<strong>${escapeHtml(innerText)}</strong>`
+      })
+      text = text.replace(/__([^_]+?)__/g, (match, innerText) => {
+        return `<strong>${escapeHtml(innerText)}</strong>`
+      })
 
-        // Fix code blocks to have proper class
-        html = html.replace(
-          /<pre class="copilot-code-block"><code class="language-(\w+)">/g,
-          '<pre class="copilot-code-block"><code class="language-$1">'
-        )
-        html = html.replace(
-          /<pre class="copilot-code-block"><code>/g,
-          '<pre class="copilot-code-block"><code>'
-        )
+      // Process italic (*text* or _text_) - but not if it's part of bold
+      text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, (match, innerText) => {
+        // Skip if already inside HTML tags
+        if (match.includes('<') || match.includes('>')) return match
+        return `<em>${escapeHtml(innerText)}</em>`
+      })
+      text = text.replace(/(?<!_)_([^_\n]+?)_(?!_)/g, (match, innerText) => {
+        // Skip if already inside HTML tags
+        if (match.includes('<') || match.includes('>')) return match
+        return `<em>${escapeHtml(innerText)}</em>`
+      })
 
-        return html
-      } catch (e) {
-        // Fall through to custom parser
+      // Process links [text](url)
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+        return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="copilot-link">${escapeHtml(linkText)}</a>`
+      })
+
+      // Escape remaining plain text (not inside HTML tags)
+      // Split by HTML tags, escape text parts, keep HTML tags
+      text = text.split(/(<[^>]+>)/g).map((part, i) => {
+        if (i % 2 === 0) {
+          // This is text content, escape it
+          return escapeHtml(part)
+        }
+        // This is an HTML tag, keep it as-is
+        return part
+      }).join('')
+
+      // Restore code placeholders with proper escaping
+      codePlaceholders.forEach((code, index) => {
+        text = text.replace(`__CODE_PLACEHOLDER_${index}__`, `<code class="copilot-inline-code">${escapeHtml(code)}</code>`)
+      })
+
+      return text
+    }
+
+    // Process code blocks with optional language identifier (```language\ncode\n```)
+    // Must be processed first to avoid processing markdown inside code blocks
+    html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+      const language = lang ? ` class="language-${lang}"` : ''
+      return `<pre class="copilot-code-block"><code${language}>${escapeHtml(code.trim())}</code></pre>`
+    })
+
+    // Process horizontal rules (---, ***, or ___)
+    html = html.replace(/^(---|\*\*\*|___)$/gm, '<hr class="copilot-hr" />')
+
+    // Process blockquotes (> text)
+    html = html.replace(/^>\s*(.+)$/gm, (match, text) => {
+      return `<blockquote class="copilot-blockquote">${processInlineMarkdown(text)}</blockquote>`
+    })
+
+    // Process headers (h1-h6) - must be processed before paragraphs
+    html = html.replace(/^###### (.+)$/gm, (match, text) => {
+      return `<h6 class="copilot-h4">${processInlineMarkdown(text)}</h6>`
+    })
+    html = html.replace(/^##### (.+)$/gm, (match, text) => {
+      return `<h5 class="copilot-h4">${processInlineMarkdown(text)}</h5>`
+    })
+    html = html.replace(/^#### (.+)$/gm, (match, text) => {
+      return `<h4 class="copilot-h4">${processInlineMarkdown(text)}</h4>`
+    })
+    html = html.replace(/^### (.+)$/gm, (match, text) => {
+      return `<h3 class="copilot-h3">${processInlineMarkdown(text)}</h3>`
+    })
+    html = html.replace(/^## (.+)$/gm, (match, text) => {
+      return `<h2 class="copilot-h2">${processInlineMarkdown(text)}</h2>`
+    })
+    html = html.replace(/^# (.+)$/gm, (match, text) => {
+      return `<h1 class="copilot-h1">${processInlineMarkdown(text)}</h1>`
+    })
+
+    // Process tables (GitHub Flavored Markdown)
+    html = html.replace(/(\|.+\|(?:\n\|[-\s:|]+\|)?(?:\n\|.+\|)+)/g, (match) => {
+      const lines = match.trim().split('\n')
+      if (lines.length < 2) return match // Not a valid table
+
+      const headerLine = lines[0]
+      const separatorLine = lines[1]
+      const dataLines = lines.slice(2)
+
+      // Parse header
+      const headers = headerLine.split('|').map(h => h.trim()).filter(h => h)
+      
+      // Parse data rows
+      const rows = dataLines.map(line => {
+        return line.split('|').map(cell => cell.trim()).filter((cell, i) => i > 0 && i <= headers.length)
+      })
+
+      let tableHtml = '<table style="border-collapse: collapse; width: 100%; margin: 1em 0;"><thead><tr>'
+      headers.forEach(header => {
+        tableHtml += `<th style="border: 1px solid ${colors.border}; padding: 8px; text-align: left; background: ${withOpacity(config.primaryColor, 0.1)};">${processInlineMarkdown(header)}</th>`
+      })
+      tableHtml += '</tr></thead><tbody>'
+      
+      rows.forEach(row => {
+        tableHtml += '<tr>'
+        row.forEach((cell, i) => {
+          tableHtml += `<td style="border: 1px solid ${colors.border}; padding: 8px;">${processInlineMarkdown(cell)}</td>`
+        })
+        tableHtml += '</tr>'
+      })
+      
+      tableHtml += '</tbody></table>'
+      return tableHtml
+    })
+
+    // Process lists - need to handle multi-line items and nested lists
+    const lines = html.split('\n')
+    const processedLines = []
+    let inList = false
+    let listType = null
+    let listItems = []
+
+    function closeList() {
+      if (listItems.length > 0) {
+        const listTag = listType === 'ul' ? 'ul' : 'ol'
+        processedLines.push(`<${listTag} class="copilot-list">${listItems.join('')}</${listTag}>`)
+        listItems = []
+      }
+      inList = false
+      listType = null
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const trimmedLine = line.trim()
+
+      // Check for unordered list item
+      const ulMatch = trimmedLine.match(/^[-*+]\s+(.+)$/)
+      // Check for ordered list item
+      const olMatch = trimmedLine.match(/^\d+\.\s+(.+)$/)
+
+      if (ulMatch || olMatch) {
+        const isUnordered = !!ulMatch
+        const content = (ulMatch || olMatch)[1]
+
+        // If we're in a different list type, close it
+        if (inList && listType !== (isUnordered ? 'ul' : 'ol')) {
+          closeList()
+        }
+
+        // Start or continue list
+        inList = true
+        listType = isUnordered ? 'ul' : 'ol'
+        listItems.push(`<li class="copilot-list-item">${processInlineMarkdown(content)}</li>`)
+      } else if (trimmedLine === '' && inList) {
+        // Empty line might end the list, but check next line
+        if (i < lines.length - 1) {
+          const nextLine = lines[i + 1].trim()
+          const nextIsListItem = /^[-*+]\s+/.test(nextLine) || /^\d+\.\s+/.test(nextLine)
+          if (!nextIsListItem) {
+            closeList()
+            processedLines.push('')
+          } else {
+            processedLines.push('')
+          }
+        } else {
+          closeList()
+        }
+      } else {
+        // Not a list item
+        if (inList) {
+          closeList()
+        }
+        processedLines.push(line)
       }
     }
 
-    // Minimal fallback parser (only used if marked.js fails to load)
-    // DON'T escape HTML first - parse markdown first, then escape will happen naturally through proper HTML tags
-    let html = processedContent
+    // Close any remaining list
+    if (inList) {
+      closeList()
+    }
 
-    // Basic code blocks (escape content inside)
-    html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
-      return `<pre class="copilot-code-block"><code>${escapeHtml(code)}</code></pre>`
-    })
+    html = processedLines.join('\n')
 
-    // Inline code (escape content inside)
-    html = html.replace(/`([^`]+)`/g, (match, code) => {
-      return `<code class="copilot-inline-code">${escapeHtml(code)}</code>`
-    })
-
-    // Headers (must be processed before paragraphs)
-    html = html.replace(/^#### (.+)$/gm, (match, text) => {
-      return `<h4 class="copilot-h4">${escapeHtml(text)}</h4>`
-    })
-    html = html.replace(/^### (.+)$/gm, (match, text) => {
-      return `<h3 class="copilot-h3">${escapeHtml(text)}</h3>`
-    })
-    html = html.replace(/^## (.+)$/gm, (match, text) => {
-      return `<h2 class="copilot-h2">${escapeHtml(text)}</h2>`
-    })
-    html = html.replace(/^# (.+)$/gm, (match, text) => {
-      return `<h1 class="copilot-h1">${escapeHtml(text)}</h1>`
-    })
-
-    // Bold
-    html = html.replace(/\*\*([^*]+)\*\*/g, (match, text) => {
-      return `<strong>${escapeHtml(text)}</strong>`
-    })
-
-    // Italic
-    html = html.replace(/\*([^*]+)\*/g, (match, text) => {
-      return `<em>${escapeHtml(text)}</em>`
-    })
-
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
-      return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="copilot-link">${escapeHtml(text)}</a>`
-    })
-
-    // Unordered lists
-    html = html.replace(/^\* (.+)$/gm, (match, text) => {
-      return `<li class="copilot-list-item">${escapeHtml(text)}</li>`
-    })
-    html = html.replace(/(<li class="copilot-list-item">[\s\S]*?<\/li>)/g, '<ul class="copilot-list">$1</ul>')
-
-    // Ordered lists
-    html = html.replace(/^\d+\. (.+)$/gm, (match, text) => {
-      return `<li class="copilot-list-item">${escapeHtml(text)}</li>`
-    })
-
-    // Paragraphs - now we need to escape remaining text
+    // Process paragraphs - split by double newlines and wrap text blocks
     html = html
       .split(/\n\n+/)
       .map(para => {
-        if (!para.trim()) return ''
-        // Don't wrap headers, lists, or code blocks in paragraphs
+        const trimmed = para.trim()
+        if (!trimmed) return ''
+
+        // Don't wrap already processed elements in paragraphs
         if (
-          para.match(/^<h[1-6]/) ||
-          para.match(/^<ul/) ||
-          para.match(/^<ol/) ||
-          para.match(/^<pre/) ||
-          para.match(/^<li/)
+          trimmed.match(/^<h[1-6]/) ||
+          trimmed.match(/^<ul/) ||
+          trimmed.match(/^<ol/) ||
+          trimmed.match(/^<pre/) ||
+          trimmed.match(/^<li/) ||
+          trimmed.match(/^<blockquote/) ||
+          trimmed.match(/^<hr/) ||
+          trimmed.match(/^<table/)
         ) {
-          return para
+          return trimmed
         }
-        // Escape any remaining plain text
-        const escapedText = para
-          .split(/(<[^>]+>)/g) // Split on HTML tags
-          .map((part, i) => {
-            // Every other part is either HTML tag or plain text
-            if (i % 2 === 0 && !part.match(/^<[^>]+>$/)) {
-              // Plain text - escape it
-              return escapeHtml(part)
-            }
-            return part
-          })
-          .join('')
-        return `<p class="copilot-paragraph">${escapedText.replace(/\n/g, ' ')}</p>`
+
+        // Process inline markdown (which handles escaping internally)
+        const processed = processInlineMarkdown(trimmed)
+        return `<p class="copilot-paragraph">${processed.replace(/\n/g, ' ')}</p>`
       })
       .join('')
 
@@ -1649,9 +1709,6 @@
 
   // Initialize
   function init() {
-    // Load marked.js library
-    loadMarkedLibrary().catch(() => {})
-
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
         injectStyles()
