@@ -86,7 +86,8 @@
       }
 
       const script = document.createElement('script')
-      script.src = 'https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js'
+      // Use local marked.js to avoid CSP violations
+      script.src = '/marked.min.js'
       script.onload = () => {
         markedLoaded = true
         // Configure marked
